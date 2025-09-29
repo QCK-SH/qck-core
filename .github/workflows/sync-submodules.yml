@@ -1,0 +1,80 @@
+name: Sync Submodules
+on:
+  repository_dispatch:
+    types:
+      - update-qck-backend-core
+      - update-qck-dashboard-core
+  workflow_dispatch: # Manual trigger option
+
+jobs:
+  sync-submodules:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.PAT_TOKEN }}
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Determine target branch
+        id: branch
+        run: |
+          # Default to main for OSS
+          BRANCH="main"
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          echo "Updating branch: $BRANCH"
+
+      - name: Switch to target branch
+        run: |
+          git checkout ${{ steps.branch.outputs.branch }}
+          git pull origin ${{ steps.branch.outputs.branch }}
+
+      - name: Update submodules to latest commits
+        run: |
+          echo "Updating submodules on ${{ steps.branch.outputs.branch }} branch..."
+          git submodule update --remote --recursive
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+            echo "Changes detected in submodules"
+          else
+            echo "changes=false" >> $GITHUB_OUTPUT
+            echo "No submodule changes detected"
+          fi
+
+      - name: Commit and push submodule updates
+        if: steps.changes.outputs.changes == 'true'
+        run: |
+          git add .
+
+          # Create descriptive commit message
+          SUBMODULE="${{ github.event.client_payload.submodule }}"
+          COMMIT="${{ github.event.client_payload.commit }}"
+          BRANCH="${{ steps.branch.outputs.branch }}"
+
+          if [[ -n "$SUBMODULE" ]]; then
+            COMMIT_MSG="auto: update $SUBMODULE submodule on $BRANCH - commit ${COMMIT:0:7}"
+          else
+            COMMIT_MSG="auto: sync submodules on $BRANCH"
+          fi
+
+          git commit -m "$COMMIT_MSG"
+
+          git push origin ${{ steps.branch.outputs.branch }}
+
+      - name: Summary
+        run: |
+          if [[ "${{ steps.changes.outputs.changes }}" == "true" ]]; then
+            echo "✅ Submodules updated successfully on ${{ steps.branch.outputs.branch }} branch"
+          else
+            echo "ℹ️ No updates needed - submodules are already up to date"
+          fi
