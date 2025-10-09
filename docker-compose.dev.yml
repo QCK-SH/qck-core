@@ -15,7 +15,7 @@ services:
     tmpfs:
       - /var/cache/nginx:uid=101,gid=101
     depends_on:
-      - qck-core-oss-dev
+      - qck-backend-oss-dev
       - qck-dashboard-oss-dev
     networks:
       - qck-core-network
@@ -63,7 +63,7 @@ services:
       - NEXT_PUBLIC_SHORT_BASE_URL=http://localhost:10180
     
     depends_on:
-      - qck-core-oss-dev
+      - qck-backend-oss-dev
     
     volumes:
       - ./qck-dashboard:/app
@@ -82,13 +82,13 @@ services:
       retries: 3
 
   # ============================================================================
-  # QCK CORE - OSS Backend Service (:8080)
+  # QCK BACKEND - OSS Backend Service (:8080)
   # ============================================================================
-  qck-core-oss-dev:
+  qck-backend-oss-dev:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: qck-core-oss-dev
+    container_name: qck-backend-oss-dev
     # Internal port 8080 - accessed via nginx only
     
     env_file:

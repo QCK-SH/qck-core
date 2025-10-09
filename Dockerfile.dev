@@ -12,24 +12,13 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy Cargo files
-COPY Cargo.toml Cargo.lock ./
-
-# Copy workspace member source
-COPY qck-backend/ ./qck-backend/
-
-# Create dummy main to build dependencies  
-RUN mkdir -p qck-backend/src/bin && echo "fn main() {}" > qck-backend/src/bin/qck-core.rs
+# Copy qck-backend source
+COPY qck-backend/ ./
 
 # Build dependencies (cache layer)
-RUN cargo build --release --bin qck-core
-RUN rm qck-backend/src/bin/qck-core.rs
+RUN cargo build --release --bin qck-backend-core
 
-# Copy real source (already copied above, this is redundant)
-# COPY src ./src/
-
-# Build the application
-RUN cargo build --release --bin qck-core
+# Application is already built above
 
 # Runtime stage
 FROM rust:1.82-slim
@@ -49,7 +38,7 @@ RUN useradd -m -u 1000 appuser
 WORKDIR /app
 
 # Copy built application
-COPY --from=builder /app/target/release/qck-core /usr/local/bin/qck-core
+COPY --from=builder /app/target/release/qck-backend-core /usr/local/bin/qck-backend
 
 # Create app user
 USER appuser
@@ -62,4 +51,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:8080/v1/health || exit 1
 
 # Use the built binary directly for OSS
-CMD ["qck-core"]
+CMD ["qck-backend"]
