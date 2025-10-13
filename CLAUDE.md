@@ -7,9 +7,13 @@
 docker-compose --env-file .env.dev -f docker-compose.dev.yml up -d
 ```
 
-## API Endpoints (via nginx :10180)
+## API Base URL
 
-**Base**: `http://localhost:10180/api/v1`
+- **Development**: `http://localhost:10180/api/v1` (nginx → :8080)
+- **Container Internal**: `http://qck-backend-oss-dev:8080/api/v1`
+- **Port Mapping**: nginx :10180 → backend :8080
+
+## API Endpoints
 
 ### Auth (Public)
 - `POST /auth/register` - Register (auto-verified)
