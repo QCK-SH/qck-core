@@ -196,3 +196,4 @@ secrets/*.crt
 data/postgres-prod/
 data/redis-prod/
 data/clickhouse-prod/
+.idea/copilotDiffState.xml
