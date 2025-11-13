@@ -1,8 +1,8 @@
 [submodule "qck-backend"]
 	path = qck-backend
 	url = https://github.com/QCK-SH/qck-backend.git
-	branch = main
+	branch = staging
 [submodule "qck-dashboard"]
 	path = qck-dashboard
 	url = https://github.com/QCK-SH/qck-dashboard.git
-	branch = main
+	branch = staging
